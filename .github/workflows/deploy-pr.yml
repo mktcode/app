@@ -7,17 +7,18 @@ on:
       - '**.md'
 
 env:
-  PR_REPO_NAME: app-pr-${{ github.event.pull_request.node_id }}
+  PR_ID: ${{ github.event.pull_request.node_id }}
 
 jobs:
   create-page-host:
     runs-on: ubuntu-latest
+    environment: pr-staging
     steps:
       - name: Create new repository for temporary deployment
-        uses: octobay/create-repository-action@v1
+        uses: mktcode/create-repository-action@b1dd3b3dcdcc491795ae189db97383a47f04808e
         with:
-          name: ${{ env.PR_REPO_NAME }}
-          org: octobay
+          name: ${{ secrets.DEPLOYMENT_REPO_PREFIX }}${{ env.PR_ID }}
+          org: ${{ secrets.DEPLOYMENT_REPO_ORG }}
           access-token: ${{ secrets.PAT }}
     
   pr-build-deploy:
@@ -25,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: pr-staging
-      url: https://octobay.github.io/${{ env.PR_REPO_NAME }}/
+      url: ${{ secrets.DEPLOYMENT_URL_PREFIX }}${{ env.PR_ID }}/
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -45,7 +46,7 @@ jobs:
         run: |
           cd pr-build
           yarn
-          export NUXT_ROUTER_BASE_DIR=/${{ env.PR_REPO_NAME }}/
+          export NUXT_ROUTER_BASE_DIR=/app-pr-${{ env.PR_ID }}/
           export API_URL=https://octobay.uber.space
           export GITHUB_CLIENT_ID=79c2b8f305ad223cfb5e
           export OCTOBAY_ADDRESS=0xEC1dA9EeE346A67C121E4fce746C64b4e31b61A4
@@ -56,7 +57,7 @@ jobs:
       - name: Checkout temporary deployment target repo
         uses: actions/checkout@v2
         with:
-          repository: octobay/${{ env.PR_REPO_NAME }}
+          repository: ${{ secrets.DEPLOYMENT_REPO_PREFIX }}${{ env.PR_ID }}
           path: 'pr-deploy'
           token: ${{ secrets.PAT }}
       
