@@ -5,15 +5,13 @@ on:
     paths-ignore:
       - '.github/workflows/**'
       - '**.md'
-env:
-  URL: dev.octobay.org
 
 jobs:
   build:
     runs-on: ubuntu-latest
     environment:
       name: development
-      url: https://${{ env.URL }}
+      url: ${{ secrets.DEPLOYMENT_URL }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -33,9 +31,9 @@ jobs:
         run: |
           cd build
           yarn
-          export API_URL=https://octobay.uber.space
+          export API_URL=${{ secrets.API_URL }}
           export GITHUB_CLIENT_ID=79c2b8f305ad223cfb5e
-          export OCTOBAY_ADDRESS=0xEC1dA9EeE346A67C121E4fce746C64b4e31b61A4
+          export OPENQ_ADDRESS=0xEC1dA9EeE346A67C121E4fce746C64b4e31b61A4
           export CHAIN_ID=42
           yarn app:generate
           cd ..
@@ -43,7 +41,7 @@ jobs:
       - name: Checkout Dev Target
         uses: actions/checkout@v2
         with:
-          repository: octobay/app-dev
+          repository: ${{ secrets.DEPLOYMENT_REPO }}
           path: 'deploy'
           token: ${{ secrets.PAT }}
       
@@ -52,7 +50,7 @@ jobs:
           cp -r build/dist/* deploy
           cd deploy
           touch .nojekyll
-          echo ${{ env.URL }} > CNAME
+          echo ${{ secrets.CNAME }} > CNAME
           git add .
           git commit -m $GITHUB_SHA
           git push

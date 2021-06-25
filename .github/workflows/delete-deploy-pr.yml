@@ -8,14 +8,14 @@ on:
       - '**.md'
 
 env:
-  PR_REPO_NAME: pr-${{ github.event.pull_request.node_id }}
+  PR_ID: ${{ github.event.pull_request.node_id }}
 
 jobs:
   delete-page-host:
     runs-on: ubuntu-latest
     steps:
       - name: Delete repository for temporary deployment
-        uses: octobay/delete-repository-action@v1
+        uses: mktcode/delete-repository-action@8e1765df0893c4555badce772bcd0b732e2770e3
         with:
-          name: octobay/${{ env.PR_REPO_NAME }}
+          name: ${{ secrets.DEPLOYMENT_REPO_PREFIX }}${{ env.PR_ID }}
           access-token: ${{ secrets.PAT }}
